@@ -2,8 +2,16 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>유튜브 썸네일 프롬프트 빌더</title>
+<!-- PWA: 홈 화면 추가 시 주소창 없는 전체화면 앱처럼 실행 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="썸네일 빌더">
+<meta name="theme-color" content="#15110f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
 <style>
   :root{
     --bg:#15110f; --panel:#1f1a17; --panel2:#272019; --line:#3a2f27;
@@ -27,7 +35,7 @@
     margin:0; color:var(--text); transition:background .3s;
     background:radial-gradient(1200px 600px at 70% -10%, #2a1d17 0%, var(--bg) 55%);
     font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.6;
-    padding:28px 18px 80px;
+    padding:calc(28px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) 80px calc(18px + env(safe-area-inset-left));
   }
   body[data-tab="healing"]{ background:radial-gradient(1200px 600px at 70% -10%, #16303d 0%, var(--bg) 55%); }
   body[data-tab="vibe"]{ background:radial-gradient(1200px 600px at 70% -10%, #3a2030 0%, var(--bg) 55%); }
@@ -88,7 +96,7 @@
   .foot{margin-top:48px; color:var(--muted); font-size:12.5px; text-align:center; line-height:1.8}
   /* 좁은 폰 화면 최적화 */
   @media(max-width:520px){
-    body{padding:16px 12px 60px}
+    body{padding:calc(16px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 60px calc(12px + env(safe-area-inset-left))}
     header h1{font-size:22px}
     .card{padding:14px}
     .preview{position:static}
@@ -447,7 +455,8 @@ function renderGallery(){
       </div>
     </div>`).join("");
 }
-function renderAll(){ renderTabs(); renderHeader(); renderBuilder(); updatePreview(); renderGallery(); }
+function updateThemeColor(){ const c=getComputedStyle(document.body).getPropertyValue('--bg').trim(); const m=document.querySelector('meta[name="theme-color"]'); if(m && c) m.setAttribute('content', c); }
+function renderAll(){ renderTabs(); renderHeader(); renderBuilder(); updatePreview(); renderGallery(); updateThemeColor(); }
 
 function switchTab(id){ activeTab=id; document.body.dataset.tab=id; renderAll(); window.scrollTo({top:0,behavior:"smooth"}); }
 function pick(k,i){ picks()[k]=i; renderBuilder(); updatePreview(); }

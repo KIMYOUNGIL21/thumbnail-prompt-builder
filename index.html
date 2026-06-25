@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>유튜브 썸네일 프롬프트 빌더</title>
+<style>
+  :root{
+    --bg:#15110f; --panel:#1f1a17; --panel2:#272019; --line:#3a2f27;
+    --text:#efe7dd; --muted:#a99a8b; --accent:#e0916b; --accent2:#caa6e0;
+    --chip:#2c241d; --chip-on:#e0916b; --chip-on-text:#1a120c; --good:#7fc8a0;
+  }
+  /* 힐링(만화) 탭은 더 산뜻한 파스텔 팔레트 */
+  body[data-tab="healing"]{
+    --bg:#0f1418; --panel:#171f25; --panel2:#1d262d; --line:#2c3a44;
+    --text:#e7eef2; --muted:#90a6b2; --accent:#79b8d6; --accent2:#e7a6c6;
+    --chip:#1b262d; --chip-on:#79b8d6; --chip-on-text:#08161d;
+  }
+  /* 감성 플리(실사 여성) 탭은 노을 로즈 팔레트 */
+  body[data-tab="vibe"]{
+    --bg:#16121a; --panel:#201a27; --panel2:#27202f; --line:#3a2f44;
+    --text:#efe7f0; --muted:#a99bb0; --accent:#e08bb0; --accent2:#b9a0e8;
+    --chip:#241d2c; --chip-on:#e08bb0; --chip-on-text:#1a1020;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--text); transition:background .3s;
+    background:radial-gradient(1200px 600px at 70% -10%, #2a1d17 0%, var(--bg) 55%);
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.6;
+    padding:28px 18px 80px;
+  }
+  body[data-tab="healing"]{ background:radial-gradient(1200px 600px at 70% -10%, #16303d 0%, var(--bg) 55%); }
+  body[data-tab="vibe"]{ background:radial-gradient(1200px 600px at 70% -10%, #3a2030 0%, var(--bg) 55%); }
+  .wrap{max-width:1180px; margin:0 auto}
+  header h1{font-size:26px; margin:0 0 6px; letter-spacing:-.4px}
+  header h1 .em{color:var(--accent)}
+  header p{margin:0; color:var(--muted); font-size:14px}
+  .meta{margin-top:10px; font-size:13px; color:var(--muted)}
+  .meta b{color:var(--accent2)}
+
+  .tabs{display:flex; gap:8px; margin:22px 0 18px; flex-wrap:wrap}
+  .tab{background:var(--panel2); border:1px solid var(--line); color:var(--muted);
+    padding:10px 18px; border-radius:10px; cursor:pointer; font-weight:700; font-size:14px; transition:.12s}
+  .tab:hover{border-color:var(--accent)}
+  .tab.on{background:var(--accent); color:var(--chip-on-text); border-color:var(--accent)}
+
+  .layout{display:grid; grid-template-columns:1fr 420px; gap:22px; align-items:start}
+  @media(max-width:920px){ .layout{grid-template-columns:1fr} }
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px}
+  .axis{margin-bottom:16px}
+  .axis:last-child{margin-bottom:0}
+  .axis .lbl{font-size:13px; color:var(--muted); margin-bottom:8px; font-weight:600; letter-spacing:.3px}
+  .axis .lbl span{color:var(--accent); font-weight:400}
+  .chips{display:flex; flex-wrap:wrap; gap:7px}
+  .chip{background:var(--chip); border:1px solid var(--line); color:var(--text);
+    padding:6px 12px; border-radius:999px; font-size:13px; cursor:pointer; transition:.12s; user-select:none}
+  .chip:hover{border-color:var(--accent)}
+  .chip.on{background:var(--chip-on); color:var(--chip-on-text); border-color:var(--chip-on); font-weight:600}
+
+  .preview{position:sticky; top:18px}
+  .preview h3{margin:0 0 10px; font-size:14px; color:var(--muted)}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px}
+  .btn{background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    padding:9px 14px; border-radius:10px; font-size:13.5px; cursor:pointer; transition:.12s; font-weight:600}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent); color:var(--chip-on-text); border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.07)}
+  .promptbox{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:14px;
+    font-size:14.5px; line-height:1.7; white-space:pre-wrap; min-height:230px; color:var(--text)}
+  .hint{font-size:12px; color:var(--muted); margin-top:10px}
+
+  .section-title{font-size:18px; margin:40px 0 4px; letter-spacing:-.3px}
+  .section-sub{color:var(--muted); font-size:13.5px; margin:0 0 18px}
+  .gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr)); gap:16px}
+  .gcard{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column}
+  .gcard .gname{font-size:15px; font-weight:700; margin-bottom:4px}
+  .gcard .gtag{font-size:11.5px; color:var(--accent2); margin-bottom:10px; letter-spacing:.2px}
+  .gcard .gtext{font-size:13px; color:var(--text); opacity:.92; line-height:1.65; flex:1;
+    background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:11px; margin-bottom:12px}
+  .gcard .grow{display:flex; gap:8px}
+  .gcard .btn{flex:1; text-align:center; font-size:13px; padding:8px}
+
+  #toast{position:fixed; left:50%; bottom:34px; transform:translateX(-50%) translateY(20px);
+    background:var(--good); color:#0e1a12; padding:11px 20px; border-radius:10px; font-weight:700;
+    font-size:14px; opacity:0; pointer-events:none; transition:.25s; z-index:50; box-shadow:0 8px 30px rgba(0,0,0,.4)}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  .foot{margin-top:48px; color:var(--muted); font-size:12.5px; text-align:center; line-height:1.8}
+  /* 좁은 폰 화면 최적화 */
+  @media(max-width:520px){
+    body{padding:16px 12px 60px}
+    header h1{font-size:22px}
+    .card{padding:14px}
+    .preview{position:static}
+    .chip{padding:7px 12px; font-size:13.5px}
+  }
+</style>
+</head>
+<body data-tab="ballad">
+<div class="wrap">
+  <header>
+    <h1 id="title"></h1>
+    <p id="subtitle"></p>
+    <div class="meta">고정 코어는 그대로 두고 아래 항목만 바꿔서 변주를 만듭니다 · 이론상 조합 수 <b id="combos">–</b>가지</div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="layout">
+    <div class="card" id="builder"></div>
+    <div class="card preview">
+      <h3>📋 완성 프롬프트</h3>
+      <div class="toolbar">
+        <button class="btn primary" onclick="copyCurrent()">복사하기</button>
+        <button class="btn" onclick="randomize()">🎲 랜덤 조합</button>
+        <button class="btn" onclick="resetPicks()">처음으로</button>
+      </div>
+      <div class="promptbox" id="promptbox"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">⭐ 추천 변주 프리셋</h2>
+  <p class="section-sub">바로 복사해서 쓸 수 있는 완성형. “빌더에 불러오기”를 누르면 위 빌더에 세팅돼서 더 손볼 수 있어요.</p>
+  <div class="gallery" id="gallery"></div>
+
+  <div class="foot">
+    이미지 안에 텍스트/로고/워터마크는 자동으로 “넣지 않는다”가 포함되어 있습니다.<br>
+    파일 위치: D:\work\thumbnail-prompts\index.html · 인터넷 없이 더블클릭으로 실행됩니다.
+  </div>
+</div>
+<div id="toast">복사됨!</div>
+
+<script>
+/* ============================================================
+   탭 = 썸네일 컨셉. 각 탭은 고정 코어 + 변주 축 + 프리셋을 가진다.
+   ============================================================ */
+const TABS = {
+  /* ---------- 탭 1: 슬픈 발라드 (실사) ---------- */
+  ballad: {
+    label:"🎤 슬픈 발라드 (실사)",
+    title:'🎤 슬픈 발라드 <span class="em">썸네일 빌더</span>',
+    subtitle:"90년대 무드 · 슬픈 발라드를 부르는 20대 한국 여가수 · 실사풍 16:9 (ChatGPT 이미지용 한국어)",
+    hint:"이 문장을 그대로 복사해서 ChatGPT에 붙여넣으세요. 잘 나온 컷을 함께 첨부하고 “이 인물로, 아래 설정만 바꿔서”라고 덧붙이면 인물 일관성이 좋아집니다.",
+    CORE:[
+      "90년대 분위기 속에서 매우 슬픈 발라드를 부르는 20대 한국 여가수를 담은 16:9 가로 유튜브 썸네일 사진.",
+      "그녀는 볼륨감 있게 살짝 웨이브진 긴 머리를 포니테일로 묶었다."
+    ],
+    TAIL:"전체적으로 매우 매력적이고 시선을 사로잡는 얼굴이며, 사진처럼 사실적인 초고화질 이미지다. 화면 안에는 어떤 글자나 로고, 워터마크도 넣지 않는다.",
+    ORDER:["framing","outfit","pose","expr","bg","light","cam"],
+    OUT:["outfit","pose","expr","bg","light","framing","cam"],
+    defaults:{framing:1,outfit:0,pose:0,expr:0,bg:0,light:2,cam:0},
+    AX:{
+      framing:{ name:"구도 / 프레이밍", opts:[
+        {label:"얼굴 클로즈업", text:"얼굴을 가득 채운 클로즈업 구도로 슬픈 감정을 극대화한다."},
+        {label:"바스트샷", text:"가슴 위까지 보이는 바스트샷 구도다."},
+        {label:"미디엄샷", text:"허리 위까지 보이는 미디엄샷 구도다."},
+        {label:"전신 와이드", text:"무대 위 전신이 보이는 와이드 구도다."},
+      ]},
+      outfit:{ name:"의상", opts:[
+        {label:"흰 원피스", text:"가볍고 하늘하늘한 흰색 민소매 원피스를 입고 있다."},
+        {label:"검정 새틴", text:"광택이 흐르는 검은색 새틴 민소매 원피스를 입고 있다."},
+        {label:"베이지 시폰", text:"은은한 베이지색 시폰 민소매 원피스를 입고 있다."},
+        {label:"꽃무늬", text:"작은 꽃무늬가 들어간 여름용 민소매 원피스를 입고 있다."},
+        {label:"청록 실크", text:"깊은 청록색 실크 민소매 원피스를 입고 있다."},
+      ]},
+      pose:{ name:"포즈 / 마이크", opts:[
+        {label:"마이크 45도", text:"스탠드 마이크를 잡고 몸을 45도 비스듬히 튼 채 서 있다."},
+        {label:"정면", text:"스탠드 마이크 앞에 정면으로 서서 노래한다."},
+        {label:"고개 숙임", text:"고개를 살짝 숙이고 마이크에 바짝 다가가 나직이 노래한다."},
+        {label:"두 손 감싸기", text:"두 손으로 마이크를 감싸 쥐고 간절하게 노래한다."},
+        {label:"손은 가슴에", text:"한 손은 스탠드 마이크를, 다른 손은 가슴에 얹고 노래한다."},
+        {label:"고음 열창", text:"눈을 감고 고음을 내지르듯 입을 크게 벌리고 있다."},
+        {label:"고개 돌려 응시", text:"마이크에서 살짝 고개를 돌려 먼 곳을 바라보며 노래한다."},
+      ]},
+      expr:{ name:"시선 / 표정", opts:[
+        {label:"마이크 응시·슬픔", text:"시선은 마이크에 둔 채 금방이라도 울 듯한 슬픈 표정을 짓고 있다."},
+        {label:"눈 감고 몰입", text:"눈을 지그시 감고 감정에 깊이 몰입한 표정이다."},
+        {label:"눈물 그렁", text:"눈가에 눈물이 그렁그렁 맺힌 채 허공을 응시한다."},
+        {label:"카메라 애절", text:"카메라를 애절하게 바라보는 촉촉한 눈빛이다."},
+        {label:"위 응시·그리움", text:"고개를 들어 위를 바라보며 그리움에 잠긴 표정이다."},
+      ]},
+      bg:{ name:"배경", opts:[
+        {label:"무대 스포트라이트", text:"배경은 한 줄기 스포트라이트만 떨어지는 어두운 무대다."},
+        {label:"재즈바 네온", text:"배경은 흐릿한 네온 불빛이 번지는 90년대 재즈바다."},
+        {label:"빗물 창가", text:"배경은 빗방울이 흘러내리는 창가이며, 유리 너머로 도시의 불빛이 번진다."},
+        {label:"빈 콘서트홀", text:"배경은 객석이 어둠에 잠긴 텅 빈 콘서트홀이다."},
+        {label:"레코딩 스튜디오", text:"배경은 방음벽과 빈티지 장비가 놓인 오래된 레코딩 스튜디오다."},
+        {label:"노을 골목", text:"배경은 노을이 지는 골목이며, 따뜻한 주황빛이 감돈다."},
+        {label:"가요무대 세트", text:"배경은 반짝이는 장식이 가득한 복고풍 TV 가요무대 세트다."},
+        {label:"단색 어둠", text:"배경은 인물을 강조하는 짙은 어둠의 단색 배경이다."},
+      ]},
+      light:{ name:"조명 / 색감", opts:[
+        {label:"블루 무디", text:"차가운 블루 톤의 무디한 조명이 인물을 감싼다."},
+        {label:"텅스텐 따뜻", text:"따뜻한 텅스텐 전구빛이 부드럽게 얼굴을 비춘다."},
+        {label:"드라마틱 스포트", text:"강한 스포트라이트와 짙은 그림자가 드라마틱한 명암을 만든다."},
+        {label:"90s 필름", text:"90년대 필름 카메라 특유의 거친 그레인과 빛바랜 색감이 묻어난다."},
+        {label:"역광 림라이트", text:"부드러운 역광이 머리카락 윤곽을 빛나게 한다."},
+        {label:"네온 반사광", text:"핑크빛과 보랏빛 네온 반사광이 은은하게 비친다."},
+      ]},
+      cam:{ name:"카메라 앵글", opts:[
+        {label:"아이레벨", text:"카메라는 눈높이에서 인물을 자연스럽게 담는다."},
+        {label:"로우앵글", text:"카메라는 살짝 아래에서 올려다보는 로우앵글이다."},
+        {label:"하이앵글", text:"카메라는 약간 위에서 내려다보는 하이앵글로 애처로움을 더한다."},
+        {label:"망원 보케", text:"카메라는 망원렌즈로 배경을 부드럽게 보케로 흐린다."},
+      ]},
+    },
+    presets:[
+      {name:"원곡 느낌 (기본)", tag:"무대 · 스포트라이트", p:{framing:1,outfit:0,pose:0,expr:0,bg:0,light:2,cam:0}},
+      {name:"눈물의 클로즈업", tag:"단색 어둠 · 역광", p:{framing:0,outfit:1,pose:3,expr:2,bg:7,light:4,cam:3}},
+      {name:"빗물 창가의 발라드", tag:"창가 · 블루 무디", p:{framing:2,outfit:2,pose:6,expr:4,bg:2,light:0,cam:0}},
+      {name:"90년대 가요무대", tag:"레트로 세트 · 필름", p:{framing:3,outfit:3,pose:1,expr:3,bg:6,light:3,cam:1}},
+      {name:"재즈바의 밤", tag:"네온 · 보케", p:{framing:1,outfit:1,pose:4,expr:1,bg:1,light:5,cam:3}},
+      {name:"고음의 절정", tag:"무대 · 드라마틱", p:{framing:2,outfit:4,pose:5,expr:1,bg:0,light:2,cam:1}},
+      {name:"텅 빈 콘서트홀", tag:"공허 · 하이앵글", p:{framing:3,outfit:0,pose:0,expr:0,bg:3,light:4,cam:2}},
+      {name:"스튜디오 모노크롬", tag:"빈티지 · 텅스텐", p:{framing:0,outfit:1,pose:2,expr:1,bg:4,light:1,cam:3}},
+      {name:"노을 골목의 회상", tag:"골목 · 따뜻한 빛", p:{framing:2,outfit:2,pose:6,expr:4,bg:5,light:1,cam:0}},
+      {name:"애절한 정면 응시", tag:"클로즈업 · 정면", p:{framing:0,outfit:0,pose:1,expr:3,bg:7,light:2,cam:0}},
+    ]
+  },
+
+  /* ---------- 탭 2: 힐링 발라드 (만화/일러스트) ---------- */
+  healing: {
+    label:"🍃 힐링 발라드 (만화)",
+    title:'🍃 힐링 발라드 <span class="em">감성 일러스트 빌더</span>',
+    subtitle:"만화 같은 웹툰풍 일러스트 · 힐링 발라드 플레이리스트 · 따뜻한 16:9 (ChatGPT 이미지용 한국어)",
+    hint:"이 문장을 그대로 복사해서 ChatGPT에 붙여넣으세요. 잘 나온 그림을 함께 첨부하고 “이 그림체로, 아래 설정만 바꿔서”라고 덧붙이면 화풍이 일관되게 유지됩니다.",
+    CORE:[
+      "따뜻하고 감성적인 힐링 발라드 플레이리스트를 위한 16:9 가로 유튜브 썸네일 일러스트레이션이다."
+    ],
+    TAIL:"부드럽고 감성적인 분위기의 고화질 일러스트이며, 인물의 표정이 자연스럽고 사랑스럽다. 화면 안에는 어떤 글자나 로고, 워터마크도 넣지 않는다.",
+    ORDER:["style","subject","place","time","color","mood","detail"],
+    OUT:["style","subject","place","time","color","mood","detail"],
+    defaults:{style:0,subject:0,place:0,time:1,color:0,mood:0,detail:1},
+    AX:{
+      style:{ name:"그림체 / 스타일", opts:[
+        {label:"웹툰풍 감성", text:"선이 깔끔한 한국 웹툰풍 감성 일러스트 스타일로 그린다."},
+        {label:"지브리풍", text:"스튜디오 지브리를 연상시키는 따뜻한 애니메이션 배경화 스타일로 그린다."},
+        {label:"수채화", text:"부드럽게 번지는 수채화 일러스트 스타일로 그린다."},
+        {label:"90s 애니 셀", text:"90년대 일본 애니메이션 셀화 특유의 레트로한 화풍으로 그린다."},
+        {label:"플랫 미니멀", text:"단순한 면과 부드러운 색으로 채운 플랫 일러스트 스타일로 그린다."},
+        {label:"로파이 감성", text:"lo-fi 플레이리스트 특유의 차분하고 몽환적인 일러스트 스타일로 그린다."},
+      ]},
+      subject:{ name:"인물 / 구성", opts:[
+        {label:"마주보며 걷는 커플", text:"젊은 커플이 서로를 바라보며 나란히 걷고 있다."},
+        {label:"창가의 여성 혼자", text:"한 젊은 여성이 창가에 앉아 밖을 바라보고 있다."},
+        {label:"산책하는 남성 혼자", text:"한 젊은 남성이 한 손을 주머니에 넣고 거리를 천천히 걷고 있다."},
+        {label:"뒷모습 커플", text:"젊은 커플이 손을 잡고 뒷모습으로 멀어지며 걷고 있다."},
+        {label:"강아지와 산책", text:"한 젊은 여성이 작은 강아지와 함께 산책하고 있다."},
+        {label:"카페에 앉은 인물", text:"한 젊은 인물이 카페 창가 자리에 앉아 커피를 마시고 있다."},
+        {label:"자전거 탄 소녀", text:"한 젊은 여성이 자전거를 타고 거리를 천천히 지나간다."},
+      ]},
+      place:{ name:"장소 / 배경", opts:[
+        {label:"지중해 흰 골목", text:"배경은 새하얀 벽의 지중해풍 골목이며, 주황색 부겐빌레아 꽃이 흐드러지게 피어 있다."},
+        {label:"비 오는 도시 창가", text:"배경은 비가 내리는 도시의 창가이며, 젖은 유리에 불빛이 번진다."},
+        {label:"가을 단풍 거리", text:"배경은 노랗고 붉게 물든 가을 단풍 거리다."},
+        {label:"벚꽃 길", text:"배경은 벚꽃이 흩날리는 봄날의 가로수길이다."},
+        {label:"바닷가 노을", text:"배경은 노을이 지는 한적한 바닷가다."},
+        {label:"눈 내리는 골목", text:"배경은 함박눈이 소복이 내리는 겨울 골목이다."},
+        {label:"한강 공원", text:"배경은 잔디밭과 강이 보이는 한강공원이다."},
+        {label:"코지 카페 실내", text:"배경은 따뜻한 조명과 화분이 있는 아늑한 카페 실내다."},
+      ]},
+      time:{ name:"계절 / 시간", opts:[
+        {label:"따뜻한 봄날", text:"따뜻한 봄날의 햇살이 부드럽게 비친다."},
+        {label:"청량한 여름", text:"맑고 청량한 여름날의 빛이 가득하다."},
+        {label:"노을 지는 저녁", text:"노을이 지는 저녁의 황금빛이 감돈다."},
+        {label:"포근한 가을 오후", text:"포근한 가을 오후의 나른한 빛이 든다."},
+        {label:"고요한 겨울", text:"고요한 겨울날의 차분한 빛이 감돈다."},
+        {label:"별이 뜬 밤", text:"별이 뜬 밤하늘 아래 잔잔한 분위기다."},
+        {label:"이른 아침", text:"이른 아침의 맑고 투명한 공기가 느껴진다."},
+      ]},
+      color:{ name:"색감 / 톤", opts:[
+        {label:"따뜻한 파스텔", text:"전체적으로 따뜻한 파스텔 톤으로 채색했다."},
+        {label:"청량한 블루", text:"맑고 청량한 블루 톤이 중심을 이룬다."},
+        {label:"노을 오렌지", text:"노을빛 오렌지와 핑크가 은은하게 번진다."},
+        {label:"포근한 베이지", text:"포근한 베이지와 크림 톤이 부드럽게 깔린다."},
+        {label:"빈티지 필름톤", text:"약간 빛바랜 빈티지 필름 같은 색감이다."},
+        {label:"싱그러운 그린", text:"싱그러운 초록빛이 화면에 생기를 더한다."},
+      ]},
+      mood:{ name:"감정 / 무드", opts:[
+        {label:"설레는", text:"설레고 풋풋한 감정이 은은하게 묻어난다."},
+        {label:"잔잔한 위로", text:"잔잔하게 마음을 위로하는 따뜻한 감정이 흐른다."},
+        {label:"아련한 그리움", text:"아련한 그리움이 은은하게 감돈다."},
+        {label:"평온한", text:"더없이 평온하고 나른한 감정이 깃든다."},
+        {label:"행복한 추억", text:"행복했던 추억을 떠올리는 듯한 분위기다."},
+      ]},
+      detail:{ name:"분위기 디테일", opts:[
+        {label:"꽃잎 날림", text:"공중에 꽃잎이 부드럽게 흩날린다."},
+        {label:"햇살 산란", text:"따뜻한 햇살이 부드럽게 산란하며 빛 망울을 만든다."},
+        {label:"빗방울", text:"잔잔한 빗방울이 떨어진다."},
+        {label:"반짝이는 보케", text:"배경에 반짝이는 빛 망울 보케가 퍼진다."},
+        {label:"낙엽", text:"낙엽이 바람에 천천히 흩날린다."},
+        {label:"커피잔 김", text:"따뜻한 커피잔에서 김이 모락모락 피어오른다."},
+        {label:"깔끔하게", text:"불필요한 요소 없이 깔끔하게 정돈한다."},
+      ]},
+    },
+    presets:[
+      {name:"지중해 산책 (레퍼런스)", tag:"웹툰 · 부겐빌레아 골목", p:{style:0,subject:0,place:0,time:1,color:0,mood:0,detail:1}},
+      {name:"벚꽃 데이트", tag:"봄 · 꽃잎 날림", p:{style:0,subject:0,place:3,time:0,color:0,mood:0,detail:0}},
+      {name:"비 오는 창가", tag:"로파이 · 밤 블루", p:{style:5,subject:1,place:1,time:5,color:1,mood:2,detail:2}},
+      {name:"가을 단풍 산책", tag:"지브리풍 · 강아지", p:{style:1,subject:4,place:2,time:3,color:4,mood:3,detail:4}},
+      {name:"겨울 골목의 밤", tag:"눈 · 뒷모습 커플", p:{style:0,subject:3,place:5,time:5,color:3,mood:2,detail:3}},
+      {name:"노을 바닷가", tag:"수채화 · 오렌지", p:{style:2,subject:2,place:4,time:2,color:2,mood:4,detail:3}},
+      {name:"아늑한 카페 오후", tag:"플랫 · 커피잔 김", p:{style:4,subject:5,place:7,time:3,color:3,mood:3,detail:5}},
+      {name:"한강 자전거", tag:"웹툰 · 아침 그린", p:{style:0,subject:6,place:6,time:6,color:5,mood:0,detail:1}},
+      {name:"90s 애니 감성", tag:"레트로 셀화 · 비", p:{style:3,subject:1,place:1,time:2,color:4,mood:2,detail:6}},
+      {name:"눈 오는 카페 창", tag:"로파이 · 겨울 위로", p:{style:5,subject:5,place:7,time:4,color:1,mood:1,detail:5}},
+    ]
+  },
+
+  /* ---------- 탭 3: 감성 플리 (실사 예쁜 여성) ---------- */
+  vibe: {
+    label:"✨ 감성 플리 (실사 여성)",
+    title:'✨ 감성 플레이리스트 <span class="em">썸네일 빌더</span>',
+    subtitle:"예쁜 20대 여성 · 루프탑/노을 감성 · R&B·힙합·POP 무드 · 실사풍 16:9 (ChatGPT 이미지용 한국어)",
+    hint:"이 문장을 그대로 복사해서 ChatGPT에 붙여넣으세요. 잘 나온 컷을 함께 첨부하고 “이 인물로, 아래 설정만 바꿔서”라고 하면 인물 일관성이 좋아집니다. ‘Playlist’ 글자는 이미지에 넣지 않으니 편집에서 따로 올리세요.",
+    CORE:[
+      "매우 예쁘고 매력적인 20대 한국 여성을 담은, 감성 플레이리스트용 16:9 가로 유튜브 썸네일 사진이다."
+    ],
+    TAIL:"매우 예쁘고 사랑스러운 얼굴이며, 감성적이고 트렌디한 분위기의 사진처럼 사실적인 초고화질 이미지다. 화면 안에는 어떤 글자나 로고, 워터마크도 넣지 않는다.",
+    ORDER:["hair","outfit","pose","expr","place","sky","color","cam"],
+    OUT:["hair","outfit","pose","expr","place","sky","color","cam"],
+    defaults:{hair:0,outfit:0,pose:0,expr:0,place:0,sky:0,color:0,cam:0},
+    AX:{
+      hair:{ name:"헤어", opts:[
+        {label:"바람에 날리는 웨이브", text:"긴 웨이브 머리가 바람에 자연스럽게 흩날린다."},
+        {label:"윤기나는 긴 웨이브", text:"윤기 흐르는 긴 웨이브 머리를 길게 늘어뜨렸다."},
+        {label:"자연스러운 반묶음", text:"긴 웨이브 머리를 반묶음으로 자연스럽게 연출했다."},
+        {label:"글로시 젖은 머리", text:"촉촉하게 젖은 듯 글로시한 긴 머리다."},
+      ]},
+      outfit:{ name:"의상", opts:[
+        {label:"오버사이즈 니트 카디건", text:"포근한 오버사이즈 니트 카디건을 살짝 풀어 입었다."},
+        {label:"오프숄더 니트", text:"한쪽 어깨가 드러나는 오프숄더 니트를 입었다."},
+        {label:"크롭 니트 + 청바지", text:"크롭 니트에 청바지를 매치한 차림이다."},
+        {label:"베이지 캐시미어", text:"부드러운 베이지 캐시미어 니트를 입었다."},
+        {label:"라이트 그레이 후디", text:"편안한 라이트 그레이 후디 차림이다."},
+        {label:"오버사이즈 흰 셔츠", text:"오버사이즈 흰 셔츠를 편하게 걸친 차림이다."},
+      ]},
+      pose:{ name:"포즈 / 동작", opts:[
+        {label:"고개 젖히고 자유롭게", text:"고개를 뒤로 살짝 젖히고 자유로움을 만끽하는 자세다."},
+        {label:"난간에 기대어", text:"옥상 난간에 편안하게 기대어 있는 자세다."},
+        {label:"머리 쓸어넘기며", text:"한 손으로 머리카락을 쓸어넘기는 자연스러운 자세다."},
+        {label:"두 팔 벌려 해방감", text:"두 팔을 가볍게 벌려 해방감을 표현하는 자세다."},
+        {label:"난간에 걸터앉아", text:"낮은 난간에 걸터앉아 느긋하게 있는 자세다."},
+        {label:"살짝 뒤돌아보며", text:"걷다가 살짝 뒤돌아보는 자세다."},
+        {label:"역동적 순간 포착", text:"움직임이 느껴지는 역동적인 순간을 포착한 자세다."},
+      ]},
+      expr:{ name:"표정", opts:[
+        {label:"환한 미소", text:"환하게 활짝 웃는 밝은 표정이다."},
+        {label:"눈 감고 평온", text:"눈을 감고 음악에 잠긴 듯 평온한 표정이다."},
+        {label:"잔잔한 미소", text:"입가에 잔잔한 미소를 머금은 은은한 표정이다."},
+        {label:"무심한 시크", text:"무심한 듯 시크하게 카메라를 응시하는 표정이다."},
+        {label:"행복한 웃음", text:"고개를 살짝 숙이며 행복하게 웃는 표정이다."},
+      ]},
+      place:{ name:"배경 / 장소", opts:[
+        {label:"지중해풍 옥상", text:"배경은 새하얀 지중해풍 건물이 내려다보이는 옥상이다."},
+        {label:"도시 야경 루프탑", text:"배경은 도시의 야경이 펼쳐진 루프탑이다."},
+        {label:"바다 보이는 테라스", text:"배경은 푸른 바다가 보이는 높은 테라스다."},
+        {label:"해질녘 한강", text:"배경은 해질녘 강과 다리가 보이는 옥상이다."},
+        {label:"산토리니풍 옥상", text:"배경은 산토리니를 닮은 흰 건물과 푸른 바다가 보이는 옥상이다."},
+        {label:"도시 스카이라인", text:"배경은 빌딩 스카이라인이 시원하게 펼쳐진 높은 곳이다."},
+      ]},
+      sky:{ name:"하늘 / 시간", opts:[
+        {label:"골든아워 노을", text:"골든아워의 따뜻한 노을빛이 하늘을 물들인다."},
+        {label:"보랏빛 트와일라잇", text:"해가 진 뒤 보랏빛으로 물든 트와일라잇 하늘이다."},
+        {label:"흐린 무드 구름", text:"잔뜩 흐린, 무드 있는 회색 구름이 깔린 하늘이다."},
+        {label:"푸른 밤 도시불빛", text:"푸른 밤하늘 아래 도시 불빛이 반짝인다."},
+        {label:"맑은 한낮", text:"맑고 청량한 한낮의 하늘이다."},
+        {label:"분홍 노을", text:"분홍빛과 주황빛이 부드럽게 번지는 노을 하늘이다."},
+      ]},
+      color:{ name:"색감 / 무드", opts:[
+        {label:"따뜻한 필름톤", text:"전체적으로 따뜻한 필름 사진 같은 색감이다."},
+        {label:"시네마틱 무디", text:"채도가 낮은 시네마틱하고 무디한 색감이다."},
+        {label:"청량한 톤", text:"맑고 청량한 색감이다."},
+        {label:"빈티지 감성", text:"약간 빛바랜 빈티지 감성의 색감이다."},
+        {label:"드리미 소프트", text:"부드럽고 몽환적인 드리미한 색감이다."},
+      ]},
+      cam:{ name:"카메라 앵글", opts:[
+        {label:"살짝 로우앵글", text:"카메라는 인물을 살짝 아래에서 올려다보며 시원하게 담는다."},
+        {label:"아이레벨", text:"카메라는 눈높이에서 자연스럽게 담는다."},
+        {label:"셀카 느낌", text:"팔을 뻗어 찍은 듯한 자연스러운 셀카 앵글이다."},
+        {label:"망원 보케", text:"카메라는 망원렌즈로 배경을 부드럽게 보케로 흐린다."},
+      ]},
+    },
+    presets:[
+      {name:"노을 옥상 (레퍼런스)", tag:"골든아워 · 바람결 미소", p:{hair:0,outfit:0,pose:0,expr:0,place:0,sky:0,color:0,cam:0}},
+      {name:"산토리니 한낮 미소", tag:"흰 건물 바다 · 청량", p:{hair:1,outfit:0,pose:4,expr:0,place:4,sky:4,color:2,cam:1}},
+      {name:"흐린 무드 루프탑", tag:"베이지 니트 · 시네마틱", p:{hair:0,outfit:3,pose:3,expr:0,place:5,sky:2,color:1,cam:0}},
+      {name:"퍼플 트와일라잇", tag:"오프숄더 · 역동적", p:{hair:0,outfit:1,pose:6,expr:4,place:2,sky:1,color:1,cam:0}},
+      {name:"골든아워 바람결", tag:"베이지 니트 · 환한 미소", p:{hair:0,outfit:3,pose:0,expr:0,place:5,sky:0,color:0,cam:1}},
+      {name:"그레이 니트 시티", tag:"흐린 하늘 · 도시", p:{hair:0,outfit:4,pose:2,expr:4,place:5,sky:2,color:1,cam:0}},
+      {name:"한강 노을 셀카", tag:"흰 셔츠 · 드리미", p:{hair:2,outfit:5,pose:5,expr:2,place:3,sky:5,color:4,cam:2}},
+      {name:"밤 루프탑 시크", tag:"크롭 니트 · 도시 야경", p:{hair:3,outfit:2,pose:1,expr:3,place:1,sky:3,color:1,cam:3}},
+      {name:"청량한 바다 테라스", tag:"크롭 니트 · 맑은 하늘", p:{hair:0,outfit:2,pose:3,expr:0,place:2,sky:4,color:2,cam:0}},
+      {name:"빈티지 골든 무드", tag:"카디건 · 빈티지 필름", p:{hair:1,outfit:0,pose:2,expr:2,place:0,sky:0,color:3,cam:3}},
+    ]
+  },
+};
+
+/* ============================================================
+   엔진
+   ============================================================ */
+let activeTab = "ballad";
+const pickState = {}; // 탭별 현재 선택 보존
+Object.keys(TABS).forEach(id => pickState[id] = {...TABS[id].defaults});
+
+function T(){ return TABS[activeTab]; }
+function picks(){ return pickState[activeTab]; }
+
+function assemble(tab, p){
+  return [...tab.CORE, ...tab.OUT.map(k => tab.AX[k].opts[p[k]].text), tab.TAIL].join(" ");
+}
+
+function renderTabs(){
+  document.getElementById("tabs").innerHTML = Object.keys(TABS).map(id =>
+    `<div class="tab ${id===activeTab?"on":""}" onclick="switchTab('${id}')">${TABS[id].label}</div>`
+  ).join("");
+}
+function renderHeader(){
+  const t=T();
+  document.getElementById("title").innerHTML = t.title;
+  document.getElementById("subtitle").textContent = t.subtitle;
+  document.getElementById("hint").textContent = t.hint;
+  document.getElementById("combos").textContent =
+    t.ORDER.reduce((a,k)=>a*t.AX[k].opts.length,1).toLocaleString("ko-KR");
+}
+function renderBuilder(){
+  const t=T(), p=picks();
+  document.getElementById("builder").innerHTML = t.ORDER.map(k=>{
+    const ax=t.AX[k];
+    const chips=ax.opts.map((o,i)=>
+      `<div class="chip ${p[k]===i?"on":""}" onclick="pick('${k}',${i})">${o.label}</div>`).join("");
+    return `<div class="axis"><div class="lbl">${ax.name} <span>· ${ax.opts[p[k]].label}</span></div><div class="chips">${chips}</div></div>`;
+  }).join("");
+}
+function updatePreview(){ document.getElementById("promptbox").textContent = assemble(T(), picks()); }
+function renderGallery(){
+  const t=T();
+  document.getElementById("gallery").innerHTML = t.presets.map((pre,idx)=>`
+    <div class="gcard">
+      <div class="gname">${idx+1}. ${pre.name}</div>
+      <div class="gtag">${pre.tag}</div>
+      <div class="gtext">${assemble(t, pre.p)}</div>
+      <div class="grow">
+        <button class="btn primary" onclick="copyPreset(${idx})">복사</button>
+        <button class="btn" onclick="loadPreset(${idx})">빌더에 불러오기</button>
+      </div>
+    </div>`).join("");
+}
+function renderAll(){ renderTabs(); renderHeader(); renderBuilder(); updatePreview(); renderGallery(); }
+
+function switchTab(id){ activeTab=id; document.body.dataset.tab=id; renderAll(); window.scrollTo({top:0,behavior:"smooth"}); }
+function pick(k,i){ picks()[k]=i; renderBuilder(); updatePreview(); }
+function randomize(){ const t=T(); t.ORDER.forEach(k=> picks()[k]=Math.floor(Math.random()*t.AX[k].opts.length)); renderBuilder(); updatePreview(); }
+function resetPicks(){ pickState[activeTab]={...T().defaults}; renderBuilder(); updatePreview(); }
+function copyCurrent(){ copyText(assemble(T(), picks())); }
+function copyPreset(idx){ copyText(assemble(T(), T().presets[idx].p)); }
+function loadPreset(idx){ pickState[activeTab]={...T().presets[idx].p}; renderBuilder(); updatePreview(); window.scrollTo({top:0,behavior:"smooth"}); toast("빌더에 불러왔어요"); }
+
+/* 복사 / 토스트 */
+function copyText(t){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>toast("복사됨! ChatGPT에 붙여넣으세요"), ()=>fallbackCopy(t));
+  } else fallbackCopy(t);
+}
+function fallbackCopy(t){
+  const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); toast("복사됨! ChatGPT에 붙여넣으세요"); }catch(e){ toast("복사 실패 — 직접 선택해 주세요"); }
+  document.body.removeChild(ta);
+}
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById("toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove("show"),1800);
+}
+
+renderAll();
+</script>
+</body>
+</html>

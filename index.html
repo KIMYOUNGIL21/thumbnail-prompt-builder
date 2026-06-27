@@ -151,14 +151,33 @@ const TABS = {
     subtitle:"90년대 무드 · 슬픈 발라드를 부르는 20대 한국 여가수 · 실사풍 16:9 (ChatGPT 이미지용 한국어)",
     hint:"이 문장을 그대로 복사해서 ChatGPT에 붙여넣으세요. 잘 나온 컷을 함께 첨부하고 “이 인물로, 아래 설정만 바꿔서”라고 덧붙이면 인물 일관성이 좋아집니다.",
     CORE:[
-      "90년대 분위기 속에서 매우 슬픈 발라드를 부르는 20대 한국 여가수를 담은 16:9 가로 유튜브 썸네일 사진.",
-      "그녀는 볼륨감 있게 살짝 웨이브진 긴 머리를 포니테일로 묶었다."
+      "90년대 분위기 속에서 매우 슬픈 발라드를 부르는 20대 한국 여가수를 담은 16:9 가로 유튜브 썸네일 사진."
     ],
-    TAIL:"전체적으로 매우 매력적이고 시선을 사로잡는 얼굴이며, 사진처럼 사실적인 초고화질 이미지다. 화면 안에는 어떤 글자나 로고, 워터마크도 넣지 않는다.",
-    ORDER:["framing","outfit","pose","expr","bg","light","cam"],
-    OUT:["outfit","pose","expr","bg","light","framing","cam"],
-    defaults:{framing:1,outfit:0,pose:0,expr:0,bg:0,light:2,cam:0},
+    TAIL:"전체적으로 매우 예쁘고 시선을 사로잡는 얼굴이며, 잡티 없이 투명하고 생기 있는 피부와 자연스러운 피부 질감, 또렷하고 조화로운 이목구비를 지녔다. 85mm 인물 렌즈의 얕은 심도로 담은 영화 스틸컷처럼 사실적인 초고화질 이미지다. 화면 안에는 어떤 글자나 로고, 워터마크도 넣지 않는다.",
+    ORDER:["face","hair","makeup","framing","outfit","pose","expr","bg","light","cam"],
+    OUT:["face","hair","makeup","outfit","pose","expr","bg","light","framing","cam"],
+    defaults:{face:0,hair:0,makeup:0,framing:1,outfit:0,pose:0,expr:0,bg:0,light:2,cam:0},
     AX:{
+      face:{ name:"얼굴 비주얼상", opts:[
+        {label:"청순한 미인상", text:"맑고 깨끗한 청순한 미인상이며, 큼직하고 투명한 눈망울이 인상적이다."},
+        {label:"고혹적·성숙한 미인", text:"깊고 그윽한 눈매를 지닌 고혹적이고 성숙한 분위기의 미인이다."},
+        {label:"러블리·사랑스러운", text:"화사하고 사랑스러운 호감형 얼굴에 부드러운 이목구비를 지녔다."},
+      ]},
+      hair:{ name:"헤어 (포니테일)", opts:[
+        {label:"볼륨 웨이브 포니테일", text:"볼륨감 있게 살짝 웨이브진 긴 머리를 높이 포니테일로 묶었다."},
+        {label:"시스루 앞머리", text:"긴 웨이브 머리를 포니테일로 묶고, 얇은 시스루 앞머리를 자연스럽게 내렸다."},
+        {label:"잔머리 흘러내림", text:"포니테일로 묶되 얼굴 옆으로 잔머리 몇 가닥이 부드럽게 흘러내린다."},
+        {label:"로우 포니테일", text:"긴 웨이브 머리를 목덜미에서 낮게 묶은 로우 포니테일이다."},
+        {label:"윤기나는 흑발", text:"윤기 흐르는 검은 긴 머리를 단정한 포니테일로 묶었다."},
+        {label:"애쉬브라운", text:"애쉬브라운빛 웨이브 긴 머리를 포니테일로 묶었다."},
+      ]},
+      makeup:{ name:"메이크업", opts:[
+        {label:"촉촉 물광 내추럴", text:"촉촉한 물광 피부에 은은하고 자연스러운 메이크업을 했다."},
+        {label:"눈가 글로시(눈물)", text:"눈가가 촉촉하게 젖어 반짝이는, 눈물이 어린 듯한 메이크업이다."},
+        {label:"차분한 누드톤", text:"차분한 누드톤의 절제된 메이크업이다."},
+        {label:"또렷한 눈매+레드립", text:"또렷한 아이라인과 깊은 레드립으로 분위기를 살린 메이크업이다."},
+        {label:"글로시 핑크 러블리", text:"발그레한 볼터치와 글로시한 핑크빛 입술의 화사한 메이크업이다."},
+      ]},
       framing:{ name:"구도 / 프레이밍", opts:[
         {label:"얼굴 클로즈업", text:"얼굴을 가득 채운 클로즈업 구도로 슬픈 감정을 극대화한다."},
         {label:"바스트샷", text:"가슴 위까지 보이는 바스트샷 구도다."},
@@ -214,16 +233,16 @@ const TABS = {
       ]},
     },
     presets:[
-      {name:"원곡 느낌 (기본)", tag:"무대 · 스포트라이트", p:{framing:1,outfit:0,pose:0,expr:0,bg:0,light:2,cam:0}},
-      {name:"눈물의 클로즈업", tag:"단색 어둠 · 역광", p:{framing:0,outfit:1,pose:3,expr:2,bg:7,light:4,cam:3}},
-      {name:"빗물 창가의 발라드", tag:"창가 · 블루 무디", p:{framing:2,outfit:2,pose:6,expr:4,bg:2,light:0,cam:0}},
-      {name:"90년대 가요무대", tag:"레트로 세트 · 필름", p:{framing:3,outfit:3,pose:1,expr:3,bg:6,light:3,cam:1}},
-      {name:"재즈바의 밤", tag:"네온 · 보케", p:{framing:1,outfit:1,pose:4,expr:1,bg:1,light:5,cam:3}},
-      {name:"고음의 절정", tag:"무대 · 드라마틱", p:{framing:2,outfit:4,pose:5,expr:1,bg:0,light:2,cam:1}},
-      {name:"텅 빈 콘서트홀", tag:"공허 · 하이앵글", p:{framing:3,outfit:0,pose:0,expr:0,bg:3,light:4,cam:2}},
-      {name:"스튜디오 모노크롬", tag:"빈티지 · 텅스텐", p:{framing:0,outfit:1,pose:2,expr:1,bg:4,light:1,cam:3}},
-      {name:"노을 골목의 회상", tag:"골목 · 따뜻한 빛", p:{framing:2,outfit:2,pose:6,expr:4,bg:5,light:1,cam:0}},
-      {name:"애절한 정면 응시", tag:"클로즈업 · 정면", p:{framing:0,outfit:0,pose:1,expr:3,bg:7,light:2,cam:0}},
+      {name:"원곡 느낌 (기본)", tag:"청순 · 무대 스포트라이트", p:{face:0,hair:0,makeup:0,framing:1,outfit:0,pose:0,expr:0,bg:0,light:2,cam:0}},
+      {name:"눈물의 클로즈업", tag:"눈가 글로시 · 역광", p:{face:0,hair:2,makeup:1,framing:0,outfit:1,pose:3,expr:2,bg:7,light:4,cam:3}},
+      {name:"빗물 창가의 발라드", tag:"청순 · 시스루 앞머리", p:{face:0,hair:1,makeup:0,framing:2,outfit:2,pose:6,expr:4,bg:2,light:0,cam:0}},
+      {name:"90년대 가요무대", tag:"러블리 · 화사 메이크업", p:{face:2,hair:0,makeup:4,framing:3,outfit:3,pose:1,expr:3,bg:6,light:3,cam:1}},
+      {name:"재즈바의 밤", tag:"고혹 · 레드립 흑발", p:{face:1,hair:4,makeup:3,framing:1,outfit:1,pose:4,expr:1,bg:1,light:5,cam:3}},
+      {name:"고음의 절정", tag:"고혹 · 드라마틱", p:{face:1,hair:0,makeup:0,framing:2,outfit:4,pose:5,expr:1,bg:0,light:2,cam:1}},
+      {name:"텅 빈 콘서트홀", tag:"청순 · 로우 포니테일", p:{face:0,hair:3,makeup:2,framing:3,outfit:0,pose:0,expr:0,bg:3,light:4,cam:2}},
+      {name:"스튜디오 모노크롬", tag:"고혹 · 누드톤 흑발", p:{face:1,hair:4,makeup:2,framing:0,outfit:1,pose:2,expr:1,bg:4,light:1,cam:3}},
+      {name:"노을 골목의 회상", tag:"청순 · 애쉬브라운", p:{face:0,hair:5,makeup:0,framing:2,outfit:2,pose:6,expr:4,bg:5,light:1,cam:0}},
+      {name:"애절한 정면 응시", tag:"눈가 글로시 · 시스루", p:{face:0,hair:1,makeup:1,framing:0,outfit:0,pose:1,expr:3,bg:7,light:2,cam:0}},
     ]
   },
 
@@ -416,7 +435,7 @@ function T(){ return TABS[activeTab]; }
 function picks(){ return pickState[activeTab]; }
 
 function assemble(tab, p){
-  return [...tab.CORE, ...tab.OUT.map(k => tab.AX[k].opts[p[k]].text), tab.TAIL].join(" ");
+  return [...tab.CORE, ...tab.OUT.map(k => tab.AX[k].opts[p[k] ?? 0].text), tab.TAIL].join(" ");
 }
 
 function renderTabs(){

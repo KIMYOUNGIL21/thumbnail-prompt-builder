@@ -30,6 +30,18 @@
     --text:#efe7f0; --muted:#a99bb0; --accent:#e08bb0; --accent2:#b9a0e8;
     --chip:#241d2c; --chip-on:#e08bb0; --chip-on-text:#1a1020;
   }
+  /* 가요톱텐 탭 — 레트로 황금빛 팔레트 */
+  body[data-tab="gaytopten"]{
+    --bg:#18100a; --panel:#231709; --panel2:#2b1e0a; --line:#4a340f;
+    --text:#f0e6c8; --muted:#aa9060; --accent:#e8c030; --accent2:#e87840;
+    --chip:#281c08; --chip-on:#e8c030; --chip-on-text:#180e00;
+  }
+  /* 싸이월드 탭 — Y2K 핑크·보라 팔레트 */
+  body[data-tab="cyworld"]{
+    --bg:#0e0a18; --panel:#170f24; --panel2:#1d142c; --line:#362850;
+    --text:#f0e8ff; --muted:#a890c0; --accent:#e060b0; --accent2:#60b8ff;
+    --chip:#1e1228; --chip-on:#e060b0; --chip-on-text:#180820;
+  }
   *{box-sizing:border-box}
   body{
     margin:0; color:var(--text); transition:background .3s;
@@ -39,6 +51,8 @@
   }
   body[data-tab="healing"]{ background:radial-gradient(1200px 600px at 70% -10%, #16303d 0%, var(--bg) 55%); }
   body[data-tab="vibe"]{ background:radial-gradient(1200px 600px at 70% -10%, #3a2030 0%, var(--bg) 55%); }
+  body[data-tab="gaytopten"]{ background:radial-gradient(1200px 600px at 70% -10%, #3a2808 0%, var(--bg) 55%); }
+  body[data-tab="cyworld"]{ background:radial-gradient(1200px 600px at 70% -10%, #2a1040 0%, var(--bg) 55%); }
   .wrap{max-width:1180px; margin:0 auto}
   header h1{font-size:26px; margin:0 0 6px; letter-spacing:-.4px}
   header h1 .em{color:var(--accent)}
@@ -144,7 +158,158 @@
    탭 = 썸네일 컨셉. 각 탭은 고정 코어 + 변주 축 + 프리셋을 가진다.
    ============================================================ */
 const TABS = {
-  /* ---------- 탭 1: 슬픈 발라드 (실사) ---------- */
+  /* ---------- 탭 1: 가요톱텐 ---------- */
+  gaytopten: {
+    label:"📺 가요톱텐",
+    title:'📺 가요톱텐 <span class="em">썸네일 빌더</span>',
+    subtitle:"80-90년대 KBS 가요톱텐 무대 감성 · 브라운관 방송 질감 · 실사풍 16:9",
+    hint:"이 문장을 그대로 ChatGPT에 붙여넣으세요. VHS 방송 캡처 특유의 색감이 살아있는 이미지가 나와야 합니다.",
+    CORE:["1990년대 KBS 가요 프로그램 무대에 선 매우 예쁜 20대 한국 여가수를 담은 16:9 유튜브 썸네일 사진."],
+    TAIL:"당시 방송국 VHS 테이프에서 캡처한 듯, 소니 방송 카메라 특유의 색감과 미세한 스캔라인 질감이 살아있는 TV 중계 스틸컷이다. 화면 안에는 어떤 글자나 로고, 워터마크도 넣지 않는다.",
+    ORDER:["face","hair","outfit","pose","expr","bg","light","framing","pos"],
+    OUT:["face","hair","outfit","pose","expr","bg","light","framing","pos"],
+    defaults:{face:0,hair:0,outfit:0,pose:0,expr:0,bg:0,light:0,framing:1,pos:0},
+    AX:{
+      pos:{ name:"인물 위치", opts:[
+        {label:"중앙", text:"인물은 화면 중앙에 안정적으로 배치한다."},
+        {label:"왼쪽", text:"인물은 화면 왼쪽에 치우쳐 배치하고, 오른쪽에는 배경 여백을 넉넉히 남긴다."},
+        {label:"오른쪽", text:"인물은 화면 오른쪽에 치우쳐 배치하고, 왼쪽에는 배경 여백을 넉넉히 남긴다."},
+      ]},
+      face:{ name:"얼굴 비주얼상", opts:[
+        {label:"청순한 미인", text:"매우 예쁜 청순한 미인으로, 무쌍꺼풀에 맑고 촉촉한 눈빛이 매력적인 한국적 얼굴이다."},
+        {label:"화사한 미인", text:"매우 예쁘고 화사한 미인으로, 무쌍꺼풀의 환한 눈빛과 밝은 미소가 매력적인 얼굴이다."},
+        {label:"고혹적 미인", text:"매우 예쁘고 고혹적인 성숙한 미인으로, 무쌍꺼풀의 그윽한 눈매에서 깊은 눈빛이 흐른다."},
+      ]},
+      hair:{ name:"헤어스타일", opts:[
+        {label:"볼륨 빅펌", text:"90년대 초 유행하던 볼륨감 넘치는 빅펌 머리가 풍성하게 어깨까지 내려온다."},
+        {label:"찰랑 웨이브", text:"90년대 중반 유행하던 자연스러운 긴 웨이브 머리가 찰랑이며 어깨에 걸친다."},
+        {label:"헤어밴드 단발", text:"귀 아래를 정갈하게 자른 단발에 당시 유행하던 헤어밴드를 하고 있다."},
+        {label:"화려한 업스타일", text:"무대용으로 정갈하게 올린 업스타일에 스팽글 헤어핀을 꽂았다."},
+      ]},
+      outfit:{ name:"무대 의상", opts:[
+        {label:"스팽글 미니드레스", text:"무대 조명을 받아 번쩍이는 스팽글 장식의 화려한 미니드레스를 입고 있다."},
+        {label:"어깨뽕 흰 정장", text:"당시 유행하던 어깨를 강조한 흰색 정장 재킷과 스커트 세트를 입고 있다."},
+        {label:"풍성한 소매 레이스", text:"어깨와 소매가 풍성하게 부풀어오른 로맨틱한 흰 레이스 드레스를 입고 있다."},
+        {label:"한복식 무대의상", text:"한국 전통 한복에서 영감을 받은 화려한 색감의 무대용 한복 드레스를 입고 있다."},
+        {label:"골드 홀터넥", text:"골드빛 소재의 홀터넥 드레스로 무대 조명 아래 화려하게 빛난다."},
+      ]},
+      pose:{ name:"포즈 / 마이크", opts:[
+        {label:"마이크 정면", text:"스탠드 마이크 앞에 정면으로 서서 노래한다."},
+        {label:"양손으로 감싸기", text:"두 손으로 마이크를 감싸 쥐고 간절하게 노래한다."},
+        {label:"손 뻗어 열창", text:"한 손은 마이크를 잡고 다른 손을 앞으로 뻗으며 열창한다."},
+        {label:"고개 젖혀 고음", text:"고개를 살짝 뒤로 젖히며 눈을 감고 고음을 뽑아낸다."},
+      ]},
+      expr:{ name:"표정 / 시선", opts:[
+        {label:"감정 몰입", text:"눈을 지그시 감고 노래에 깊이 몰입한 표정이다."},
+        {label:"애절한 응시", text:"카메라를 애절하게 바라보는 촉촉한 눈빛이다."},
+        {label:"슬픈 표정", text:"금방이라도 울 듯한 슬픈 표정으로 노래한다."},
+        {label:"화사한 미소", text:"환하고 화사한 미소를 지으며 노래한다."},
+      ]},
+      bg:{ name:"배경", opts:[
+        {label:"무지개 겔 조명 세트", text:"배경에 여러 색의 겔 조명이 무지개처럼 번지는 전형적인 90년대 TV 음악 프로그램 세트다."},
+        {label:"별빛 커튼", text:"배경에 반짝이는 금빛 별빛 커튼이 드리워진 화려한 무대다."},
+        {label:"핑크 스모크", text:"배경에 핑크빛 스모크 조명이 퍼져있는 몽환적인 무대다."},
+        {label:"화이트 스튜디오", text:"배경은 밝게 조명된 심플한 화이트 스튜디오다."},
+      ]},
+      light:{ name:"조명", opts:[
+        {label:"스포트라이트", text:"인물을 향해 강렬한 스포트라이트가 쏟아진다."},
+        {label:"TV 스튜디오 평판", text:"TV 스튜디오 특유의 균일하고 밝은 평판 조명이다."},
+        {label:"컬러 역광", text:"배경의 컬러 조명이 역광처럼 인물 뒤에서 쏟아진다."},
+      ]},
+      framing:{ name:"구도", opts:[
+        {label:"얼굴 클로즈업", text:"얼굴을 가득 채운 클로즈업 구도다."},
+        {label:"바스트샷", text:"가슴 위까지 보이는 바스트샷 구도다."},
+      ]},
+    },
+    presets:[
+      {name:"별빛 스포트라이트", tag:"스팽글 · 빅펌 · 대표 레퍼런스", p:{face:0,hair:0,outfit:0,pose:0,expr:0,bg:1,light:0,framing:1,pos:0}},
+      {name:"무지개 조명 열창", tag:"골드 홀터넥 · 손 뻗음", p:{face:2,hair:0,outfit:4,pose:2,expr:0,bg:0,light:2,framing:1,pos:0}},
+      {name:"핑크 스모크 발라드", tag:"레이스 드레스 · 애절", p:{face:0,hair:1,outfit:2,pose:1,expr:1,bg:2,light:0,framing:0,pos:0}},
+      {name:"화이트 스튜디오 정면", tag:"어깨뽕 · 화사 미소", p:{face:1,hair:2,outfit:1,pose:0,expr:3,bg:3,light:1,framing:1,pos:0}},
+      {name:"한복 드레스 고음", tag:"업스타일 · 고개 젖힘", p:{face:2,hair:3,outfit:3,pose:3,expr:2,bg:0,light:0,framing:1,pos:0}},
+      {name:"단발 헤어밴드 클로즈업", tag:"청순 · 애절한 응시", p:{face:0,hair:2,outfit:0,pose:1,expr:1,bg:1,light:0,framing:0,pos:1}},
+      {name:"골드 찰랑 웨이브", tag:"화사 · 별빛 커튼", p:{face:1,hair:1,outfit:4,pose:0,expr:3,bg:1,light:0,framing:1,pos:2}},
+      {name:"핑크 스모크 고혹", tag:"고혹 · 감정 몰입", p:{face:2,hair:0,outfit:0,pose:1,expr:0,bg:2,light:2,framing:0,pos:0}},
+    ]
+  },
+
+  /* ---------- 탭 2: 싸이월드 ---------- */
+  cyworld: {
+    label:"💾 싸이월드",
+    title:'💾 싸이월드 <span class="em">썸네일 빌더</span>',
+    subtitle:"2000년대 초 싸이월드 미니홈피 감성 · Y2K 디지캠 · 실사풍 16:9",
+    hint:"이 문장을 그대로 ChatGPT에 붙여넣으세요. 초기 디지털 카메라 플래시 특유의 색감이 살아있어야 합니다.",
+    CORE:["2003년 싸이월드 미니홈피에 올릴 법한 매우 예쁜 20대 한국 여성을 담은 16:9 유튜브 썸네일 사진."],
+    TAIL:"캐논 Ixus 400 디지털 카메라로 찍은 듯, Y2K 특유의 플래시 오버노출과 선명한 색감이 살아있는 초기 디지캠 사진 느낌이다. 화면 안에는 어떤 글자나 로고, 워터마크도 넣지 않는다.",
+    ORDER:["face","hair","outfit","pose","expr","place","light","framing","pos"],
+    OUT:["face","hair","outfit","pose","expr","place","light","framing","pos"],
+    defaults:{face:0,hair:0,outfit:0,pose:0,expr:0,place:0,light:0,framing:1,pos:0},
+    AX:{
+      pos:{ name:"인물 위치", opts:[
+        {label:"중앙", text:"인물은 화면 중앙에 안정적으로 배치한다."},
+        {label:"왼쪽", text:"인물은 화면 왼쪽에 치우쳐 배치하고, 오른쪽에는 배경 여백을 넉넉히 남긴다."},
+        {label:"오른쪽", text:"인물은 화면 오른쪽에 치우쳐 배치하고, 왼쪽에는 배경 여백을 넉넉히 남긴다."},
+      ]},
+      face:{ name:"얼굴 비주얼상", opts:[
+        {label:"귀엽고 사랑스러운", text:"매우 예쁘고 귀여운 미인으로, 무쌍꺼풀의 부드러운 눈매에 2000년대 초 이상형 같은 사랑스러운 얼굴이다."},
+        {label:"청순한 미인", text:"매우 예쁜 청순한 미인으로, 무쌍꺼풀에 맑고 촉촉한 눈빛이 매력적인 한국적 얼굴이다."},
+      ]},
+      hair:{ name:"헤어스타일", opts:[
+        {label:"찰랑 긴 생머리", text:"당시 유행하던 찰랑찰랑한 긴 생머리를 길게 늘어뜨렸다."},
+        {label:"갈색 하이라이트 웨이브", text:"갈색 하이라이트가 들어간 웨이브 긴 머리다. 2000년대 초 유행하던 스타일이다."},
+        {label:"사이드 포니테일", text:"한쪽으로 모아 느슨하게 묶은 사이드 포니테일이다."},
+        {label:"앞머리 있는 긴머리", text:"눈썹 위를 덮는 일자 앞머리에 찰랑거리는 긴 머리다."},
+      ]},
+      outfit:{ name:"의상", opts:[
+        {label:"흰 민소매 크롭탑", text:"당시 유행하던 심플한 흰 민소매 크롭탑을 입고 있다."},
+        {label:"스트라이프 긴팔", text:"가느다란 스트라이프 패턴의 긴팔 티셔츠를 입고 있다."},
+        {label:"컬러 집업 후디", text:"밝은 원색의 집업 후디를 걸쳤다. 당시 유행하던 캐주얼 스타일이다."},
+        {label:"청자켓에 흰티", text:"청자켓 안에 흰 티셔츠를 매치한 2000년대 초반 교복 위에 걸치던 그 느낌이다."},
+        {label:"오프숄더 니트", text:"한쪽 어깨가 살짝 드러나는 오프숄더 니트를 입었다."},
+      ]},
+      pose:{ name:"포즈", opts:[
+        {label:"브이샷", text:"카메라를 보며 브이를 하고 환하게 웃고 있다."},
+        {label:"머리 만지며", text:"머리카락을 자연스럽게 만지며 카메라를 바라본다."},
+        {label:"턱 괴고", text:"한 손으로 턱을 괴고 카메라를 바라본다."},
+        {label:"어깨에 손 얹고", text:"한 손을 어깨 위에 얹고 살짝 고개를 기울인 자세다."},
+      ]},
+      expr:{ name:"표정 / 시선", opts:[
+        {label:"환한 미소", text:"카메라를 보며 환하고 사랑스러운 미소를 짓고 있다."},
+        {label:"수줍은 미소", text:"살짝 수줍은 듯 미소를 지으며 카메라를 바라본다."},
+        {label:"도발적 눈빛", text:"카메라를 살짝 흘겨보는 도발적이고 매력적인 눈빛이다."},
+        {label:"몽환적 시선", text:"살짝 먼 곳을 바라보는 몽환적이고 감성적인 표정이다."},
+      ]},
+      place:{ name:"배경 장소", opts:[
+        {label:"방 인테리어", text:"배경은 당시 흔하던 심플한 방 인테리어다. 벽과 침대가 살짝 보인다."},
+        {label:"학교 옥상", text:"배경은 학교 옥상이다. 파란 하늘과 난간이 보인다."},
+        {label:"가로수 거리", text:"배경은 가로수가 늘어선 거리다. 햇살이 나뭇잎 사이로 비친다."},
+        {label:"편의점 앞 야경", text:"배경은 야간 편의점 앞이다. 형광등 불빛이 밝게 비친다."},
+        {label:"공원 벤치", text:"배경은 공원 벤치다. 나무와 하늘이 보인다."},
+      ]},
+      light:{ name:"조명", opts:[
+        {label:"플래시 직광", text:"디지털 카메라 플래시가 정면에서 직접 터지며 살짝 오버노출된 느낌이다."},
+        {label:"창문 자연광", text:"창문으로 들어오는 따뜻한 자연광이 부드럽게 비친다."},
+        {label:"역광", text:"뒤에서 햇빛이 비추는 역광으로 인물 주변에 빛 테두리가 생긴다."},
+        {label:"편의점 형광등", text:"편의점 천장 형광등이 인물을 밝게 비추는 차가운 조명이다."},
+      ]},
+      framing:{ name:"구도", opts:[
+        {label:"얼굴 클로즈업", text:"얼굴을 가득 채운 클로즈업 구도다."},
+        {label:"바스트샷", text:"가슴 위까지 보이는 바스트샷 구도다."},
+      ]},
+    },
+    presets:[
+      {name:"방에서 브이샷 (레퍼런스)", tag:"귀여운 · 플래시 · 흰 크롭탑", p:{face:0,hair:0,outfit:0,pose:0,expr:0,place:0,light:0,framing:1,pos:0}},
+      {name:"학교 옥상 역광", tag:"청순 · 생머리 · 역광", p:{face:1,hair:0,outfit:3,pose:1,expr:3,place:1,light:2,framing:0,pos:0}},
+      {name:"가로수길 브이", tag:"하이라이트 웨이브 · 집업", p:{face:0,hair:1,outfit:2,pose:0,expr:0,place:2,light:1,framing:1,pos:0}},
+      {name:"편의점 야경 셀카", tag:"앞머리 · 형광등 직광", p:{face:0,hair:3,outfit:0,pose:2,expr:1,place:3,light:3,framing:0,pos:0}},
+      {name:"공원 수줍은 미소", tag:"청순 · 사이드 포니 · 자연광", p:{face:1,hair:2,outfit:4,pose:3,expr:1,place:4,light:1,framing:1,pos:1}},
+      {name:"방에서 도발적 눈빛", tag:"귀여운 · 플래시 직광", p:{face:0,hair:0,outfit:1,pose:2,expr:2,place:0,light:0,framing:0,pos:0}},
+      {name:"옥상 몽환 시선", tag:"청순 · 청자켓 · 자연광", p:{face:1,hair:3,outfit:3,pose:1,expr:3,place:1,light:1,framing:1,pos:2}},
+      {name:"가로수 햇살 웃음", tag:"귀여운 · 하이라이트 웨이브", p:{face:0,hair:1,outfit:0,pose:0,expr:0,place:2,light:1,framing:1,pos:1}},
+    ]
+  },
+
+  /* ---------- 탭 3: 슬픈 발라드 (실사) ---------- */
   ballad: {
     label:"🎤 슬픈 발라드 (실사)",
     title:'🎤 슬픈 발라드 <span class="em">썸네일 빌더</span>',
@@ -447,7 +612,7 @@ const TABS = {
 /* ============================================================
    엔진
    ============================================================ */
-let activeTab = "ballad";
+let activeTab = Object.keys(TABS)[0];
 const pickState = {}; // 탭별 현재 선택 보존
 Object.keys(TABS).forEach(id => pickState[id] = {...TABS[id].defaults});
 
